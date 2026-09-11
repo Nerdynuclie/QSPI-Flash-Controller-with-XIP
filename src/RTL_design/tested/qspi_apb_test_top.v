@@ -483,9 +483,6 @@ assign tx_fifo_rd_en =
 
 //====================================================
 // RX FIFO WRITE
-// (generated natively in spi_clk domain to match
-//  u_rx_fifo's wr_clk, instead of using the PCLK-domain
-//  qspi_done_pulse)
 //====================================================
 
 reg qspi_done_spi_d;
