@@ -1,4 +1,4 @@
-module apb_test_top
+module qspi_apb_test_top
 (
     input  wire         PCLK,
     input  wire         PRESETn,
@@ -284,13 +284,7 @@ clk_div u_clk_div
     .CPOL           (cpol_cfg),
     .CPHA           (cpha_cfg),
 
-    .SCLK           (spi_clk),
-
-    .SPOS           (),
-    .SNEG           (),
-
-    .sample_edge    (sample_edge),
-    .shift_edge     (shift_edge)
+    .SCLK           (spi_clk)
 );
 
 
@@ -300,7 +294,7 @@ clk_div u_clk_div
 // APB REGBANK
 //====================================================
 
-apb_regbank u_apb
+qspi_apb_regbank u_apb
 (
     .PCLK           (PCLK),
     .PRESETn        (PRESETn),
@@ -316,7 +310,6 @@ apb_regbank u_apb
     .tx_fifo_wdata  (tx_fifo_wdata),
 
     .tx_fifo_full   (tx_fifo_full),
-    .tx_fifo_empty  (tx_fifo_empty),
 
     .start          (start),
 
@@ -352,7 +345,7 @@ apb_regbank u_apb
 // ICE
 //====================================================
 
-ice u_ice
+qspi_ice u_ice
 (
     .clk            (PCLK),
     .rst_n          (PRESETn),

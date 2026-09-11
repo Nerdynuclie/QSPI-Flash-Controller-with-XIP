@@ -46,10 +46,6 @@ localparam TXDATA_REG    = 8'h1C;
 localparam RXDATA_REG    = 8'h20;
 localparam STATUS_REG    = 8'h24;
 
-// Number of idle PCLK cycles given to the flash after a WREN
-// command completes, so the part has time to internally latch
-// the WEL bit before the next command is issued (CS deselect
-// to next CS assert setup, tSHSL-style margin).
 localparam WREN_SETTLE_CYCLES = 20;
 
 //==================================================
@@ -184,10 +180,6 @@ endtask
 
 //==================================================
 // WREN
-// Issues 06h and, once the controller reports done,
-// holds the bus idle for WREN_SETTLE_CYCLES so the
-// flash has time to actually set its internal WEL bit
-// before the next command (erase/program/WRSR) is sent.
 //==================================================
 
 task wren;
@@ -366,11 +358,6 @@ endtask
 //==================================================
 // QUAD MODE ENABLE SEQUENCE
 // WREN -> WRSR(01h) with QE=1 (data=0x40) -> done.
-// Call this immediately before ANY quad-lane operation
-// (QIOR, QPP, etc). WREN internally settles WEL before
-// the WRSR command is issued, and this task in turn
-// waits for the WRSR cycle to complete before returning,
-// so the caller can safely issue the quad command next.
 //==================================================
 
 task quad_mode_enable;
@@ -576,15 +563,6 @@ begin
         $display("QIOR PASS");
     else
         $display("QIOR FAIL");
-
-    //---------------------------------------
-    // Example: a second quad op later in the
-    // test would repeat the same pattern:
-    //
-    //   quad_mode_enable();
-    //   repeat(10) read_status(status);
-    //   qior_read(<addr>, rd_data);
-    //---------------------------------------
 
     //---------------------------------------
     // END
