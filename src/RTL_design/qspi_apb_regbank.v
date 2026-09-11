@@ -13,7 +13,6 @@ module apb_regbank
     output reg          tx_fifo_wr_en,
     output reg [31:0]   tx_fifo_wdata,
     input  wire         tx_fifo_full,
-    input  wire         tx_fifo_empty,
 
     //ICE Interface
     output reg          start,
@@ -88,7 +87,6 @@ begin
 
         tx_fifo_wr_en <= 0;
         tx_fifo_wdata <= 0;
-        PRDATA        <= 32'd0;
     end
     else
     begin
