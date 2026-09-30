@@ -9,6 +9,7 @@ module qspi_apb_test_top
     input  wire         PWRITE,
     input  wire [7:0]   PADDR,
     input  wire [31:0]  PWDATA,
+    output wire         PREADY,
     output wire [31:0]  PRDATA,
 
     // QSPI IO
@@ -304,6 +305,7 @@ qspi_apb_regbank u_apb
     .PWRITE         (PWRITE),
     .PADDR          (PADDR),
     .PWDATA         (PWDATA),
+    .PREADY         (PREADY),
     .PRDATA         (PRDATA),
 
     .tx_fifo_wr_en  (tx_fifo_wr_en),

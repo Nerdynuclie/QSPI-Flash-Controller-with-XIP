@@ -7,6 +7,7 @@ module qspi_apb_regbank
     input  wire         PWRITE,
     input  wire [7:0]   PADDR,
     input  wire [31:0]  PWDATA,
+    output wire         PREADY,
     output reg  [31:0]  PRDATA,
     
     //TX FIFO
@@ -55,8 +56,11 @@ localparam STATUS_REG    = 8'h24;
 wire apb_write;
 wire apb_read;
 
-assign apb_write = PSEL & PENABLE & PWRITE;
-assign apb_read  = PSEL & PENABLE & ~PWRITE;
+// Zero-wait-state slave: every access completes in the ACCESS phase.
+assign PREADY = 1'b1;
+
+assign apb_write = PSEL & PENABLE & PREADY & PWRITE;
+assign apb_read  = PSEL & PENABLE & PREADY & ~PWRITE;
 
 always @(posedge PCLK or negedge PRESETn)
 begin
