@@ -18,9 +18,7 @@ module qspi_apb_test_top
     output wire         cs_n
 );
 
-//====================================================
 // APB -> ICE
-//====================================================
 
 wire start;
 
@@ -46,17 +44,13 @@ wire [7:0] dummy_cycles;
 wire [15:0] data_len;
 
 wire start_qspi;
-//====================================================
 // Status
-//====================================================
 
 wire busy;
 wire done;
 wire error;
 
-//====================================================
 // TX FIFO
-//====================================================
 
 wire        tx_fifo_wr_en;
 wire [31:0] tx_fifo_wdata;
@@ -67,9 +61,7 @@ wire [31:0] tx_fifo_rdata;
 wire        tx_fifo_full;
 wire        tx_fifo_empty;
 
-//====================================================
 // RX FIFO
-//====================================================
 
 wire        rx_fifo_wr_en;
 wire [31:0] rx_fifo_wdata;
@@ -80,15 +72,11 @@ wire [31:0] rx_fifo_rdata;
 wire        rx_fifo_full;
 wire        rx_fifo_empty;
 
-//====================================================
 // ICE
-//====================================================
 
 wire [31:0] ice_rdata;
 
-//====================================================
 // CMD FIFO
-//====================================================
 
 wire        cmd_fifo_wr_en;
 wire [79:0] cmd_fifo_wdata;
@@ -100,9 +88,7 @@ wire        cmd_fifo_empty;
 
 
 
-//====================================================
 // Decoder Outputs
-//====================================================
 wire        cmd_valid;
 
 wire        dec_is_read;
@@ -126,9 +112,7 @@ wire [7:0]  dec_mode_byte;
 wire [7:0]  dec_dummy_cycles;
 wire [15:0] dec_data_len;
 
-//====================================================
 // QSPI
-//====================================================
 
 wire [31:0] qspi_read_data;
 wire        qspi_busy;
@@ -136,9 +120,7 @@ wire        qspi_done;
 wire        qspi_error;
 
 
-//====================================================
 //CLK DIV
-//====================================================
 wire        spi_clk;
 wire        sample_edge;
 wire        shift_edge;
@@ -154,10 +136,8 @@ reg  cmd_read_pending;
 reg [79:0] txn_desc_reg;
 
 wire spi_clk_enable;
-
-//=====================================================
-//RESET SYNC  (spi_clk domain)
-//=====================================================
+=
+//RESET SYNC  (spi_clk domain)=
 wire spi_rst_n;
 
 reset_sync u_reset_sync_spi
@@ -167,18 +147,7 @@ reset_sync u_reset_sync_spi
     .sync_rst_n  (spi_rst_n)
 );
 
-//==========================================
-// cmd_fifo read-capture FSM
-// (lives entirely in spi_clk domain - this logic reads
-//  cmd_fifo_rdata, and u_cmd_fifo's read port is on spi_clk,
-//  so the capture logic must be clocked here, not on PCLK)
-//
-// start_pulse_spi is generated in the SAME always block, the
-// cycle txn_desc_reg becomes valid. Since cmd_fifo_rd_en_r,
-// this capture FSM, and u_qspi are ALL in the spi_clk domain,
-// no PCLK<->spi_clk crossing is needed for start at all - it
-// was only needed back when cmd_fifo_rd_en_r lived on PCLK.
-//==========================================
+
 reg start_pulse_spi_r;
 
 always @(posedge spi_clk or negedge spi_rst_n)
@@ -209,9 +178,9 @@ end
 wire start_pulse_spi;
 assign start_pulse_spi = start_pulse_spi_r;
 
-//==============================
+
 // qspi_done : spi_clk -> PCLK synchronizer + edge detect
-//==============================
+
 wire qspi_done_sync;
 
 two_ff_sync sync_done
@@ -238,9 +207,8 @@ assign qspi_done_pulse =
        qspi_done_sync &
       ~qspi_done_d;
 
-//========================================
+
 // qspi_busy : spi_clk -> PCLK synchronizer
-//========================================
 wire qspi_busy_pclk_sync;
 
 two_ff_sync sync_busy
@@ -251,10 +219,8 @@ two_ff_sync sync_busy
     .dout (qspi_busy_pclk_sync)
 );
 
-//====================================================
 // cmd_fifo read-request generation (spi_clk domain,
 // matches rd_clk of u_cmd_fifo)
-//====================================================
 assign cmd_fifo_rd_en = cmd_fifo_rd_en_r;
 
 always @(posedge spi_clk or negedge spi_rst_n)
@@ -289,12 +255,9 @@ clk_div u_clk_div
     .SCLK           (spi_clk)
 );
 
+=
 
-//=====================================================
-
-//====================================================
 // APB REGBANK
-//====================================================
 
 qspi_apb_regbank u_apb
 (
@@ -313,6 +276,7 @@ qspi_apb_regbank u_apb
     .tx_fifo_wdata  (tx_fifo_wdata),
 
     .tx_fifo_full   (tx_fifo_full),
+    .cmd_fifo_full  (cmd_fifo_full),
 
     .start          (start),
 
@@ -344,9 +308,7 @@ qspi_apb_regbank u_apb
     .error          (error)
 );
 
-//====================================================
 // ICE
-//====================================================
 
 qspi_ice u_ice
 (
@@ -395,9 +357,7 @@ qspi_ice u_ice
     .error          (error)
 );
 
-//====================================================
 // Command FIFO
-//====================================================
 
 async_fifo
 #(
@@ -422,9 +382,7 @@ u_cmd_fifo
 
 
 
-//====================================================
 // TX FIFO
-//====================================================
 
 async_fifo
 #(
@@ -447,9 +405,7 @@ u_tx_fifo
     .fifo_empty (tx_fifo_empty)
 );
 
-//====================================================
 // RX FIFO
-//====================================================
 
 async_fifo
 #(
@@ -473,20 +429,16 @@ u_rx_fifo
 );
 
 
-//====================================================
 // TX FIFO READ
 // (was gated on undriven 'start_qspi' - now uses the
 //  real spi_clk-domain start pulse, matches rd_clk)
-//====================================================
 
 assign tx_fifo_rd_en =
        start_pulse_spi &&
        dec_is_write &&
        !tx_fifo_empty;
 
-//====================================================
 // RX FIFO WRITE
-//====================================================
 
 reg qspi_done_spi_d;
 
@@ -511,9 +463,7 @@ assign rx_fifo_wr_en =
 
 assign rx_fifo_wdata = qspi_read_data;
 
-//====================================================
 // DECODER
-//====================================================
 
 qspi_decoder u_decoder
 (
@@ -544,9 +494,7 @@ qspi_decoder u_decoder
 
 
 
-//====================================================
 // QSPI CONTROLLER
-//====================================================
 
 qspi_controller_top u_qspi
 (

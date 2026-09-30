@@ -14,6 +14,7 @@ module qspi_apb_regbank
     output reg          tx_fifo_wr_en,
     output reg [31:0]   tx_fifo_wdata,
     input  wire         tx_fifo_full,
+    input  wire         cmd_fifo_full,
 
     //ICE Interface
     output reg          start,
@@ -152,7 +153,8 @@ begin
             //Data
             TXDATA_REG:
             begin
-                if(!tx_fifo_full)
+                // Payload is only useful with a command that can be queued.
+                if(!tx_fifo_full && !cmd_fifo_full)
                 begin
                     tx_fifo_wr_en <= 1'b1;
                     tx_fifo_wdata <= PWDATA;

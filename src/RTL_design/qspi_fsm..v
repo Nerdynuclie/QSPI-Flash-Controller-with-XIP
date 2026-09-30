@@ -123,7 +123,8 @@ QSPI FSM
 Flow:
 1. Receive decoded command information from qspi_decoder.
 2. For WRITE and ERASE operations:
-    WREN (0x06) -> Actual Command
+    WREN (0x06), then CS_n high so the flash sets WEL,
+    then the page-program or erase opcode as a new command
 3. Send opcode.
 4. Send address if required.
 5. Insert dummy cycles if required.
@@ -162,7 +163,8 @@ begin
 
 
         // sends the WREN opcode to the flash.
-        // Once transmission is complete, the FSM proceeds to send the actual command opcode.
+        // CS_n must rise after 0x06 so the flash sets WEL, then fall
+        // again for the page-program or erase opcode.
         SHIFT_WREN: begin
             if(tx_done)     next_state = SHIFT_OPCODE;
             else            next_state = SHIFT_WREN;
@@ -354,14 +356,16 @@ begin
 
         SHIFT_WREN: begin
             if(tx_done) begin
-                load_opcode = 1'b1;
-            end  
+                Busy        = 1'b1;
+                load_opcode = 1'b1;   // page program or erase opcode
+                next_cs_n   = 1'b1;   // CS_n high for one SCLK executes WREN
+            end
             else begin
             SPI_MODE  = MODE_SINGLE;
             load_wren = 1'b0;   //tx_load disable
             Tx_Shift  = 1'b1;   //tx_shift enable
-            Busy      = 1'b1;   
-            next_cs_n      = 1'b0;   //keep flash slected
+            Busy      = 1'b1;
+            next_cs_n = 1'b0;   // flash selected while 0x06 shifts
             end
 
         end
