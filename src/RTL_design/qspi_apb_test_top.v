@@ -14,6 +14,7 @@ module qspi_apb_test_top
 
     // QSPI IO
     inout  wire [3:0]   io,
+    output wire         spi_sclk,
     output wire         cs_n
 );
 
@@ -578,6 +579,7 @@ qspi_controller_top u_qspi
     .write_data     (tx_fifo_rdata),
 
     .io             (io),
+    .spi_sclk       (spi_sclk),
     .cs_n           (cs_n),
 
     .read_data      (qspi_read_data),

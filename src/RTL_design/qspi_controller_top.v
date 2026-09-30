@@ -36,6 +36,7 @@ module qspi_controller_top
     // Flash Interface
     //--------------------------------------------------
     inout  wire [3:0]   io,
+    output wire         spi_sclk,
     output wire         cs_n,
     //--------------------------------------------------
     // Status
@@ -204,6 +205,7 @@ qspi_fsm u_fsm
     .Ioen            (ioen),
 
     .CS_n            (cs_n),
+    .SCLK_OUT        (spi_sclk),
 
     .Busy            (busy),
     .Done            (done),
