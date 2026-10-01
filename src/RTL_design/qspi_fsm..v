@@ -392,7 +392,7 @@ begin
                 load_opcode = 1'b0;
                 Tx_Shift    = 1'b1; //tx_shift enable
                 Busy        = 1'b1;
-                next_cs_n        = 1'b0;
+                next_cs_n   = 1'b0;
             end
         end
 
