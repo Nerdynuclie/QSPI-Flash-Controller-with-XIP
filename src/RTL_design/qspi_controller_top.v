@@ -9,7 +9,6 @@ module qspi_controller_top
     input  wire         SCLK,
     input  wire         RESETn,
 
- 
     // Arbiter Interface
  
     input  wire         start,

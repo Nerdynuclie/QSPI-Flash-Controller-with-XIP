@@ -1,21 +1,34 @@
 module qspi_apb_test_top
+#(
+    parameter APB_ADDR_WIDTH = 8,
+    parameter APB_DATA_WIDTH = 32,
+    parameter IO_WIDTH       = 4,
+    parameter CMD_FIFO_WIDTH = 80,
+    parameter CMD_FIFO_DEPTH = 16,
+    parameter TX_FIFO_DEPTH  = 16,
+    parameter RX_FIFO_DEPTH  = 16,
+    parameter CLK_DIV        = 23'd4,
+    parameter CPOL           = 1'b0,
+    parameter CPHA           = 1'b0,
+    parameter MAX_WIDTH      = 32
+)
 (
-    input  wire         PCLK,
-    input  wire         PRESETn,
+    input  wire                          PCLK,
+    input  wire                          PRESETn,
 
     // APB
-    input  wire         PSEL,
-    input  wire         PENABLE,
-    input  wire         PWRITE,
-    input  wire [7:0]   PADDR,
-    input  wire [31:0]  PWDATA,
-    output wire         PREADY,
-    output wire [31:0]  PRDATA,
+    input  wire                          PSEL,
+    input  wire                          PENABLE,
+    input  wire                          PWRITE,
+    input  wire [APB_ADDR_WIDTH-1:0]     PADDR,
+    input  wire [APB_DATA_WIDTH-1:0]     PWDATA,
+    output wire                          PREADY,
+    output wire [APB_DATA_WIDTH-1:0]     PRDATA,
 
     // QSPI IO
-    inout  wire [3:0]   io,
-    output wire         spi_sclk,
-    output wire         cs_n
+    inout  wire [IO_WIDTH-1:0]           io,
+    output wire                          spi_sclk,
+    output wire                          cs_n
 );
 
 // APB -> ICE
@@ -52,36 +65,36 @@ wire error;
 
 // TX FIFO
 
-wire        tx_fifo_wr_en;
-wire [31:0] tx_fifo_wdata;
+wire                          tx_fifo_wr_en;
+wire [APB_DATA_WIDTH-1:0]    tx_fifo_wdata;
 
-wire        tx_fifo_rd_en;
-wire [31:0] tx_fifo_rdata;
+wire                          tx_fifo_rd_en;
+wire [APB_DATA_WIDTH-1:0]    tx_fifo_rdata;
 
 wire        tx_fifo_full;
 wire        tx_fifo_empty;
 
 // RX FIFO
 
-wire        rx_fifo_wr_en;
-wire [31:0] rx_fifo_wdata;
+wire                          rx_fifo_wr_en;
+wire [APB_DATA_WIDTH-1:0]    rx_fifo_wdata;
 
-wire        rx_fifo_rd_en;
-wire [31:0] rx_fifo_rdata;
+wire                          rx_fifo_rd_en;
+wire [APB_DATA_WIDTH-1:0]    rx_fifo_rdata;
 
 wire        rx_fifo_full;
 wire        rx_fifo_empty;
 
 // ICE
 
-wire [31:0] ice_rdata;
+wire [APB_DATA_WIDTH-1:0] ice_rdata;
 
 // CMD FIFO
 
-wire        cmd_fifo_wr_en;
-wire [79:0] cmd_fifo_wdata;
+wire                          cmd_fifo_wr_en;
+wire [CMD_FIFO_WIDTH-1:0]    cmd_fifo_wdata;
 
-wire [79:0] cmd_fifo_rdata;
+wire [CMD_FIFO_WIDTH-1:0]    cmd_fifo_rdata;
 
 wire        cmd_fifo_full;
 wire        cmd_fifo_empty;
@@ -114,7 +127,7 @@ wire [15:0] dec_data_len;
 
 // QSPI
 
-wire [31:0] qspi_read_data;
+wire [APB_DATA_WIDTH-1:0] qspi_read_data;
 wire        qspi_busy;
 wire        qspi_done;
 wire        qspi_error;
@@ -125,19 +138,16 @@ wire        spi_clk;
 wire        sample_edge;
 wire        shift_edge;
 
-wire [22:0] divider_cfg;
-wire        cpol_cfg;
-wire        cpha_cfg;
 wire cmd_fifo_rd_en;
 reg  cmd_fifo_rd_en_r;
 reg  cmd_read_pending;
 
 
-reg [79:0] txn_desc_reg;
+reg [CMD_FIFO_WIDTH-1:0] txn_desc_reg;
 
 wire spi_clk_enable;
-=
-//RESET SYNC  (spi_clk domain)=
+
+//RESET SYNC  (spi_clk domain)
 wire spi_rst_n;
 
 reset_sync u_reset_sync_spi
@@ -155,7 +165,7 @@ begin
     if(!spi_rst_n)
     begin
         cmd_read_pending  <= 1'b0;
-        txn_desc_reg      <= 80'd0;
+        txn_desc_reg      <= {CMD_FIFO_WIDTH{1'b0}};
         start_pulse_spi_r <= 1'b0;
     end
     else
@@ -234,28 +244,22 @@ begin
 end
 
 
-assign divider_cfg = 23'd4;
-assign cpol_cfg    = 1'b0;
-assign cpha_cfg    = 1'b0;
-
-
 clk_div u_clk_div
 (
     .PCLK           (PCLK),
     .PRESETn        (PRESETn),
 
-    .DIVIDER        (divider_cfg),
+    .DIVIDER        (CLK_DIV),
     .EN             (1'b1),
 
     .SPI_BUSY       (1'b1),
 
-    .CPOL           (cpol_cfg),
-    .CPHA           (cpha_cfg),
+    .CPOL           (CPOL),
+    .CPHA           (CPHA),
 
     .SCLK           (spi_clk)
 );
 
-=
 
 // APB REGBANK
 
@@ -361,8 +365,8 @@ qspi_ice u_ice
 
 async_fifo
 #(
-    .WIDTH (80),
-    .DEPTH (16)
+    .WIDTH (CMD_FIFO_WIDTH),
+    .DEPTH (CMD_FIFO_DEPTH)
 )
 u_cmd_fifo
 (
@@ -386,8 +390,8 @@ u_cmd_fifo
 
 async_fifo
 #(
-    .WIDTH (32),
-    .DEPTH (16)
+    .WIDTH (APB_DATA_WIDTH),
+    .DEPTH (TX_FIFO_DEPTH)
 )
 u_tx_fifo
 (
@@ -409,8 +413,8 @@ u_tx_fifo
 
 async_fifo
 #(
-    .WIDTH (32),
-    .DEPTH (16)
+    .WIDTH (APB_DATA_WIDTH),
+    .DEPTH (RX_FIFO_DEPTH)
 )
 u_rx_fifo
 (
@@ -496,7 +500,11 @@ qspi_decoder u_decoder
 
 // QSPI CONTROLLER
 
-qspi_controller_top u_qspi
+qspi_controller_top
+#(
+    .MAX_WIDTH (MAX_WIDTH)
+)
+u_qspi
 (
     .SCLK           (spi_clk),
     .RESETn         (spi_rst_n),
