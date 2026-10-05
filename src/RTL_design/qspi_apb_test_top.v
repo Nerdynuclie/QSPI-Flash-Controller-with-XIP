@@ -8,8 +8,6 @@ module qspi_apb_test_top
     parameter TX_FIFO_DEPTH  = 16,
     parameter RX_FIFO_DEPTH  = 16,
     parameter CLK_DIV        = 23'd4,
-    parameter CPOL           = 1'b0,
-    parameter CPHA           = 1'b0,
     parameter MAX_WIDTH      = 32
 )
 (
@@ -30,7 +28,8 @@ module qspi_apb_test_top
     output wire                          spi_sclk,
     output wire                          cs_n
 );
-
+localparam CPOL = 1'b0,
+localparam CPHA = 1'b0,
 // APB -> ICE
 
 wire start;

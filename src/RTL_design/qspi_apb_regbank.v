@@ -56,9 +56,11 @@ localparam STATUS_REG    = 8'h24;
 
 wire apb_write;
 wire apb_read;
+wire tx_access;
 
-// Zero-wait-state slave: every access completes in the ACCESS phase.
-assign PREADY = 1'b1;
+// Pready Logic
+assign tx_access = (PSEL && PENABLE && PWRITE && (PADDR == TXDATA_REG));
+assign PREADY = tx_access ? (!tx_fifo_full && !cmd_fifo_full) : 1'b1;
 
 assign apb_write = PSEL & PENABLE & PREADY & PWRITE;
 assign apb_read  = PSEL & PENABLE & PREADY & ~PWRITE;
@@ -78,18 +80,15 @@ begin
         mode_en   <= 0;
         dummy_en  <= 0;
         data_en   <= 0;
-
         opcode       <= 0;
         address      <= 0;
         mode_byte    <= 0;
         dummy_cycles <= 0;
         data_len     <= 0;
-
         addr_mode  <= 0;
         mode_mode  <= 0;
         dummy_mode <= 0;
         data_mode  <= 0;
-
         tx_fifo_wr_en <= 0;
         tx_fifo_wdata <= 0;
     end
