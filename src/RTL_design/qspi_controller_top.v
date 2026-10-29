@@ -142,7 +142,7 @@ begin
     else if(load_data)
     begin
         tx_data = write_data;
-        tx_len  = data_len[5:0];
+        tx_len  = data_len[5:0]*4;
     end
 
     else if(load_status)
