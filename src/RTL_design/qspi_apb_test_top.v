@@ -28,8 +28,8 @@ module qspi_apb_test_top
     output wire                          spi_sclk,
     output wire                          cs_n
 );
-localparam CPOL = 1'b0,
-localparam CPHA = 1'b0,
+localparam CPOL = 1'b0;
+localparam CPHA = 1'b0;
 // APB -> ICE
 
 wire start;
